@@ -1,0 +1,67 @@
+﻿======================================================================
+  DETECCAO AUTOMATICA - Coordenadas do SAC
+======================================================================
+
+Monitor primario: 1920x1080
+Area virtual total: 3840x1080
+Monitor direito comeca em X = 1920
+
+Janelas SAC encontradas: 1
+  hwnd=264972  pos=(0,0)~(1920,1080)  Monitor: ESQUERDO
+  Titulo:  Benchimol, IrmÒo & Cia Ltda. Loja ESCRITORIO CENTRAL  VersÒo 06 01 26 06 00N (U
+
+Usando janela: hwnd=264972
+  left=0 top=0 right=1920 bottom=1080
+
+Campos Edit encontrados: 8
+  [0] class=TCompEdit            text='                    ' center=(  363,   77) rect=(321,68,406,87)
+  [1] class=TCompEdit            text='                    ' center=(  488,   77) rect=(445,68,531,87)
+  [2] class=TCompEdit            text='00/00/0000          ' center=(  648,   77) rect=(610,68,686,87)
+  [3] class=TCompEdit            text='                    ' center=(  460,  100) rect=(321,91,600,110)
+  [4] class=TCompEdit            text='                    ' center=(  342,  123) rect=(297,114,387,133)
+  [5] class=TCompEdit            text='                    ' center=(  448,  123) rect=(403,114,493,133)
+  [6] class=TCompEdit            text='                    ' center=(  554,  123) rect=(509,114,599,133)
+  [7] class=TCompEdit            text='                    ' center=(  459,  146) rect=(403,137,515,156)
+
+Botoes encontrados: 20
+  class=TCompButton          text='&Limpar tudo        ' center=(  644,  123) << LIMPAR
+  class=TCompImageButton     text='                    ' center=(   14, 1069)
+  class=TCompImageButton     text='                    ' center=( 1722, 1069)
+  class=TCompImageButton     text='                    ' center=( 1740, 1069)
+  class=TCompImageButton     text='                    ' center=( 1758, 1069)
+  class=TCompImageButton     text='                    ' center=( 1776, 1069)
+  class=TCompImageButton     text='                    ' center=( 1794, 1069)
+  class=TCompImageButton     text='                    ' center=( 1812, 1069)
+  class=TCompImageButton     text='                    ' center=( 1830, 1069)
+  class=TCompImageButton     text='                    ' center=( 1847, 1069)
+  class=TCompImageButton     text='                    ' center=( 1704, 1069)
+  class=TCompImageButton     text='                    ' center=( 1865, 1069)
+  class=TCompImageButton     text='Minimi&zar          ' center=(  194,   38)
+  class=TCompImageButton     text='&Sair               ' center=(  141,   38)
+  class=TCompImageButton     text='&Opþ§es             ' center=(   85,   38)
+  class=TCompImageButton     text='                    ' center=(   27,   25)
+  class=TCompImageButton     text='                    ' center=( 1893,    8)
+  class=TCompImageButton     text='                    ' center=( 1907,    8)
+  class=TCompImageButton     text='                    ' center=( 1879,    8)
+  class=TCompButton          text='&PesCli             ' center=(  288,  120)
+
+======================================================================
+  COORDENADAS SUGERIDAS
+======================================================================
+
+COORDS = {
+    # [0] "campo_0" -> (363, 77)
+    # [1] "campo_1" -> (488, 77)
+    # [2] "00/00/0000" -> (648, 77)
+    # [3] "campo_3" -> (460, 100)
+    # [4] "campo_4" -> (342, 123)
+    # [5] "campo_5" -> (448, 123)
+    # [6] "campo_6" -> (554, 123)
+    # [7] "campo_7" -> (459, 146)
+}
+
+"Limpar tudo": (644, 123)
+
+======================================================================
+Cole a saida acima para que eu atualize o main.py
+======================================================================

@@ -1,31 +1,24 @@
 # RPA - Automação Sistema de SAC Bemol
 
-Automação para extração de dados de clientes (CPF, Nome, Telefone) do **Sistema de Vendas Bemol SAC**, lendo IDs de uma planilha Excel e salvando os resultados em outra planilha.
+Automação robusta para extração de dados de clientes (CPF, Nome, Telefone) do **Sistema de Vendas Bemol SAC**. O robô lê IDs de uma planilha Excel (ou arquivo TXT), os insere no sistema (Delphi/VCL), lê os resultados na tela via API Win32 (`WM_GETTEXT`) e os salva cumulativamente em um arquivo Excel, garantindo a retomada (resume) automática em caso de interrupção.
 
 ---
 
 ## 📋 Status atual
 
-> **⚠️ Em desenvolvimento — parado no ponto de leitura dos campos**
+> **✅ Em Produção — Leitura de campos resolvida e scripts processando em lote com sucesso!**
 
 | Etapa | Status |
 |---|---|
-| Ler planilha de entrada (`Clientes_Fora_Padrao 5.xlsx`) | ✅ Funcionando |
-| Conectar na janela "Sistema de Vendas" | ✅ Funcionando |
+| Ler arquivos de entrada (`.xlsx` ou `.txt`) | ✅ Funcionando |
+| Conectar na janela "Sistema de Vendas" e gerir foco | ✅ Funcionando (DPI Aware) |
 | Digitar ID no campo Cliente e pressionar Enter | ✅ Funcionando |
-| Sistema carrega os dados do cliente na tela | ✅ Funcionando |
-| Ler CPF, Nome e Telefone da tela | ❌ **Pendente** |
-| Salvar planilha de saída (`Clientes_Extraidos_SAC.xlsx`) | ⏳ Depende do item acima |
+| Ler dados transparentemente (sem depender de Ctrl+C) | ✅ Funcionando (Win32 API `WM_GETTEXT`) |
+| Salvar planilha de saída (`Clientes_Extraidos_SAC.xlsx`) | ✅ Funcionando |
+| Retomar processamento (Pular clientes "OK") | ✅ Funcionando (Salva a cada 50 clientes) |
 
-### Problema atual
-O sistema usa controles **`TCompEdit`** (Delphi/VCL customizado) que bloqueiam:
-- `WM_GETTEXT` — retorna vazio
-- `WM_COPY` — não copia para clipboard
-- `SetFocus` programático — retorna "Acesso negado"
-
-O `Ctrl+A` + `Ctrl+C` **funciona manualmente** (confirmado colando no Bloco de Notas), mas o script não consegue copiar porque o **terminal/VS Code rouba o foco** antes do `Ctrl+C` ser executado.
-
-**Próxima tentativa:** o script agora minimiza o terminal automaticamente antes de operar. Testar amanhã com `python main.py --debug`.
+### Como o problema de leitura foi resolvido:
+O sistema SAC é construído em Delphi e utiliza componentes customizados da classe `TCompEdit`. Anteriormente, tentar copiar os dados via `Ctrl+A/Ctrl+C` falhava na hora que o foco mudava. A solução implantada foi a utilização da biblioteca **`win32gui` com DpiAwareness** que pesquisa o Handle (`hwnd`) exato de cada campo com base em suas coordenadas fixas, executando em seguida a mensagem nativa **`WM_GETTEXT`**. Isso tornou a extração virtualmente instantânea (milissegundos) e muito menos suscetível a erros de tela.
 
 ---
 
@@ -33,26 +26,25 @@ O `Ctrl+A` + `Ctrl+C` **funciona manualmente** (confirmado colando no Bloco de N
 
 | Item | Detalhe |
 |---|---|
-| SO | Windows 10/11 |
-| Python | 3.11 **32-bit** (obrigatório — sistema SAC é 32-bit) |
-| Monitors | 2 monitores — SAC ocupa a tela **esquerda** inteira |
+| SO | Windows |
+| Python | 3.11+ |
+| Monitores | Suporta dual-monitors. O script detecta automaticamente deslocamentos com o uso de `detectar_coords.py`. |
 | Sistema alvo | "Sistema de Vendas" / "Sistema de SAC" (Delphi/VCL) |
-| Janela Win32 | Título: `Benchimol, Irmão & Cia Ltda...` / hwnd varia |
-| Controles | Classe `TCompEdit` — não expõe texto via Win32 padrão |
+| Janela Win32 | Título da janela contendo _"Benchimol, Irmão & Cia Ltda"_ ou _"Sistema de Vendas"_ |
 
 ---
 
 ## 📁 Arquivos do projeto
 
-```
+```text
 etl-lisnildo-sac/
-├── main.py                      # Script principal do RPA (= rpa_bemol_sac.py)
-├── window.py                    # Script utilitário — mostra posição do mouse
-├── capturar_coords.py           # Captura coordenadas clicando nos campos
-├── diagnostico.py               # Diagnóstico de janelas e sessão Windows
-├── Clientes_Fora_Padrao 5.xlsx  # Planilha de entrada com coluna ID_CLIENTE
-├── Clientes_Extraidos_SAC.xlsx  # Planilha de saída (gerada pelo RPA)
-└── rpa_log.txt                  # Log de execução (gerado automaticamente)
+├── main.py                      # Script principal (Lê do .xlsx e processa)
+├── processar-erros.py           # Script para reprocessar erros lendo de um .txt
+├── detectar_coords.py           # Utilitário que encontra a tela e detecta as coordenadas dinamicamente
+├── diagnostico.py               # Diagnostica a estrutura Win32 da interface e classes de hwnd
+├── Clientes_Fora_Padrao 5.xlsx  # Planilha de entrada original (Lida por main.py)
+├── reprocessar_erros.txt        # TXT com ids falhos que devem ser lidos (processar-erros.py)
+└── Clientes_Extraidos_SAC.xlsx  # Planilha final de output (Lida e gravada pelos 2 scripts)
 ```
 
 ---
@@ -60,118 +52,67 @@ etl-lisnildo-sac/
 ## ⚙️ Instalação
 
 ```bash
-# Python 32-bit obrigatório
-# Baixe em: https://www.python.org/downloads/windows/
-# Marque "Add to PATH" durante a instalação
-
-pip install pyautogui openpyxl pywin32 pyperclip pynput
+pip install pyautogui openpyxl pywin32 pyperclip
 ```
 
 ---
 
-## 🗺️ Coordenadas dos campos (tela atual)
+## 🗺️ Coordenadas e Detecção de Tela
 
-Capturadas com `python window.py` — **devem ser reconfirmadas se a janela mover**.
+As posições (x, y) de cada campo precisam estar parametrizadas no array `COORDS` dentro dos scripts `main.py` e `processar-erros.py`. Para calcular automaticamente isso baseado na posição exata da tela e no monitor atual (Esquerdo ou Direito), use:
 
-```python
-COORDS = {
-    "Cliente"    : (324, 74),
-    "CPF"        : (449, 77),
-    "Nome"       : (324, 98),
-    "Telefone"   : (300, 120),
-    "Limpar tudo": (648, 120),
-}
-```
-
-Para recapturar:
 ```bash
-python window.py
-# Passe o mouse sobre cada campo e anote as coordenadas
+python detectar_coords.py
 ```
+O script exibirá exatamente o bloco `COORDS = { ... }` que precisa ser preenchido no código. O código é _DPI-Aware_ para contornar escalas de tela variáveis (como zooms do Windows a 125/150%).
 
 ---
 
-## 🚀 Como usar
+## 🚀 Uso e Processamento
 
-### 1. Testar leitura dos campos (DEBUG)
-```bash
-# Com um cliente carregado na tela do SAC:
-python main.py --debug
-
-# O terminal será minimizado automaticamente após 3 segundos.
-# Verifique o output no rpa_log.txt
-```
-
-**Saída esperada quando funcionar:**
-```
-[INFO]   Cliente         lido='2090418'
-[INFO]   CPF             lido='95508082204'
-[INFO]   Nome            lido='PATRICIA ARAUJO OLIVEIRA'
-[INFO]   Telefone        lido='92985942997'
-```
-
-### 2. Executar em massa
+### Processamento Principal (`main.py`)
+Para executar em lote lendo a planilha inteira.
 ```bash
 python main.py
 ```
-- Aguarda 3 segundos (minimiza terminal)
-- Processa os 3698 IDs da planilha
-- Salva resultados em `Clientes_Extraidos_SAC.xlsx`
-- **Para emergência:** mova o mouse para o **CANTO SUPERIOR ESQUERDO**
+* O fluxo identificará caso o `Clientes_Extraidos_SAC.xlsx` já possua registros com `Status='OK'` e os ignorará, permitindo que a execução interropida (por queda de energia, manual, etc) retorne exatamente de onde parou.
+* A gravação do progresso acontece no disco **a cada 50 clientes**.
+
+### Processamento de Erros ou Lista Separada (`processar-erros.py`)
+Para rodar especificamente os registros salvos em `reprocessar_erros.txt` (um ID por linha). O script une os resultados, atualizando os status de falhas recentes na própria planilha `Clientes_Extraidos_SAC.xlsx`.
+```bash
+python processar-erros.py
+```
+
+### Modo de Teste / Debug
+Verifica rapidamente se ele consegue ler os campos expostos em tela.
+```bash
+python main.py --debug
+```
+
+* **Nota de Emergência:** Para frear a automação abruptamente durante o movimento, deslize depressa o mouse para o **Canto Superior Esquerdo** da tela (ativando o FailSafe do PyAutoGUI).
 
 ---
 
-## 🔍 Histórico de tentativas para leitura dos campos
+## 📊 Estrutura da Planilha de Saída (`Clientes_Extraidos_SAC.xlsx`)
 
-| Abordagem | Resultado |
-|---|---|
-| `pywinauto` + `children(class_name="Edit")` | ❌ Lista vazia — `TCompEdit` não é classe `Edit` padrão |
-| `win32gui.EnumChildWindows` buscando `"Edit"` | ❌ Lista vazia — mesma razão |
-| `WM_GETTEXT` direto no hwnd do `TCompEdit` | ❌ Retorna vazio |
-| `WM_COPY` direto no hwnd | ❌ Não copia |
-| `SetFocus` + `Ctrl+A` + `Ctrl+C` programático | ❌ "Acesso negado" (processo diferente) |
-| `pyautogui.click` + `Ctrl+A` + `Ctrl+C` | ⚠️ Terminal rouba foco antes do `Ctrl+C` |
-| OCR com Tesseract | ❌ Tesseract não instalado (sem compilador C++) |
-| Click + minimizar terminal + `Ctrl+C` | 🔄 **Próxima tentativa** |
-
-**Confirmado manualmente:** `Ctrl+A` + `Ctrl+C` no campo funciona (colagem no Bloco de Notas retorna o texto correto). O problema é exclusivamente de **foco da janela** durante a automação.
-
----
-
-## 💡 Próximas abordagens caso o foco continue falhando
-
-1. **Rodar o script de uma janela CMD separada** (não VS Code) — o VS Code pode estar interceptando o foco
-2. **`pyautogui` com janela SAC maximizada** na tela inteira, terminal na outra tela
-3. **Criar um `.bat`** que abre o script minimizado para não competir pelo foco
-4. **Hook de teclado global** (`pynput`) para capturar o clipboard no momento exato
-5. **Ler o processo de memória** do SAC via `ReadProcessMemory` (requer privilégios)
-
----
-
-## 📊 Planilha de entrada
-
-**Arquivo:** `Clientes_Fora_Padrao 5.xlsx`  
-**Coluna obrigatória:** `ID_CLIENTE`  
-**Total de IDs:** 3698 únicos
-
-## 📊 Planilha de saída
-
-**Arquivo:** `Clientes_Extraidos_SAC.xlsx`
+O layout final foi condensado para:
 
 | Coluna | Descrição |
 |---|---|
-| `ID_CLIENTE` | ID original da planilha de entrada |
-| `CPF_CNPJ` | CPF formatado (000.000.000-00) ou CNPJ |
-| `PRIMEIRO_NOME` | Primeira palavra do nome |
-| `SOBRENOME` | Restante do nome |
-| `CONTATO` | Primeiro telefone cadastrado |
-| `STATUS` | `OK` ou `ERRO: <mensagem>` |
+| `ID` | ID do cliente |
+| `Nome` | Primeiro nome extraído do cliente |
+| `Sobrenome` | O restante do nome |
+| `CPF` | CPF formatado (000.000.000-00) ou CNPJ |
+| `Telefone` | O campo correspondente a contato telefônico |
+| `Status` | `OK` ou `ERRO: ...`/`Cliente não encontrado` |
 
 ---
 
-## ⚡ Configurações ajustáveis no `main.py`
+## ⚡ Ajustes de Tempo de Resposta
 
+No início dos scripts `main.py` e `processar-erros.py`, defina as tolerâncias caso a conexão do sistema seja lenta:
 ```python
-PAUSA_APOS_BUSCA = 10.0   # segundos aguardando o sistema carregar o cliente
-PAUSA_ENTRE_IDS  = 1.0    # pausa entre cada cliente processado
+PAUSA_APOS_BUSCA = 10.0   # segundos aguardando o sistema carregar visualmente o cliente
+PAUSA_ENTRE_IDS  = 1.0    # pausa entre cada verificação e o início do próximo
 ```

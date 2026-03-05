@@ -1,0 +1,36 @@
+Monitor primario: 1920x1080
+Janela:  Benchimol, Irmão & Cia Ltda. Loja ESCRITORIO CENTRAL  Versã
+Monitor: ESQUERDO
+Rect: left=0 top=0 right=1920 bottom=1080
+
+=== EDITS (8) ===
+[0] cls=TCompEdit          txt='                         ' center=(363,77)
+[1] cls=TCompEdit          txt='                         ' center=(488,77)
+[2] cls=TCompEdit          txt='00/00/0000               ' center=(648,77)
+[3] cls=TCompEdit          txt='                         ' center=(460,100)
+[4] cls=TCompEdit          txt='                         ' center=(342,123)
+[5] cls=TCompEdit          txt='                         ' center=(448,123)
+[6] cls=TCompEdit          txt='                         ' center=(554,123)
+[7] cls=TCompEdit          txt='                         ' center=(459,146)
+
+=== BOTOES (20) ===
+cls=TCompImageButton   txt='                         ' center=(1879,8)
+cls=TCompImageButton   txt='                         ' center=(1893,8)
+cls=TCompImageButton   txt='                         ' center=(1907,8)
+cls=TCompImageButton   txt='                         ' center=(27,25)
+cls=TCompImageButton   txt='&Opções                  ' center=(85,38)
+cls=TCompImageButton   txt='&Sair                    ' center=(141,38)
+cls=TCompImageButton   txt='Minimi&zar               ' center=(194,38)
+cls=TCompButton        txt='&PesCli                  ' center=(288,120)
+cls=TCompButton        txt='&Limpar tudo             ' center=(644,123)
+cls=TCompImageButton   txt='                         ' center=(14,1069)
+cls=TCompImageButton   txt='                         ' center=(1704,1069)
+cls=TCompImageButton   txt='                         ' center=(1722,1069)
+cls=TCompImageButton   txt='                         ' center=(1740,1069)
+cls=TCompImageButton   txt='                         ' center=(1758,1069)
+cls=TCompImageButton   txt='                         ' center=(1776,1069)
+cls=TCompImageButton   txt='                         ' center=(1794,1069)
+cls=TCompImageButton   txt='                         ' center=(1812,1069)
+cls=TCompImageButton   txt='                         ' center=(1830,1069)
+cls=TCompImageButton   txt='                         ' center=(1847,1069)
+cls=TCompImageButton   txt='                         ' center=(1865,1069)

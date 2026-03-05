@@ -27,9 +27,8 @@ except Exception:
         pass
 
 # ─── CONFIGURAÇÕES ────────────────────────────────────────────────────────────
-ARQUIVO_ENTRADA   = "Clientes_Fora_Padrao 5.xlsx"
+ARQUIVO_ENTRADA   = "reprocessar_erros.txt"
 ARQUIVO_SAIDA     = "Clientes_Extraidos_SAC.xlsx"
-COLUNA_ID_CLIENTE = "ID_CLIENTE"
 
 PAUSA_APOS_BUSCA  = 10.0
 PAUSA_ENTRE_IDS   = 1.0
@@ -282,22 +281,15 @@ def split_nome(nome: str):
     return p[0], " ".join(p[1:])
 
 
-def ler_ids_planilha(caminho: str, coluna: str) -> list:
-    wb = load_workbook(caminho, read_only=True, data_only=True)
-    ws = wb.active
-    cabecalho = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
-    if coluna not in cabecalho:
-        wb.close()
-        raise ValueError(f"Coluna '{coluna}' não encontrada.")
-    ci = cabecalho.index(coluna)
+def ler_ids_txt(caminho: str) -> list:
+    if not __import__('os').path.exists(caminho):
+        raise ValueError(f"Arquivo '{caminho}' não encontrado.")
     ids_vistos, ids = set(), []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        v = row[ci]
-        if v is not None:
-            s = str(v).strip().split(".")[0]
-            if s and s not in ids_vistos:
-                ids_vistos.add(s); ids.append(s)
-    wb.close()
+    with open(caminho, 'r', encoding='utf-8') as f:
+        for linha in f:
+            v = linha.strip()
+            if v and v not in ids_vistos:
+                ids_vistos.add(v); ids.append(v)
     return ids
 
 
@@ -372,8 +364,8 @@ def main():
     time.sleep(3)
 
     try:
-        ids_totais = ler_ids_planilha(ARQUIVO_ENTRADA, COLUNA_ID_CLIENTE)
-        log.info(f"Planilha carregada: {len(ids_totais)} IDs totais")
+        ids_totais = ler_ids_txt(ARQUIVO_ENTRADA)
+        log.info(f"Arquivo TXT carregado: {len(ids_totais)} IDs totais")
     except Exception as e:
         log.error(str(e)); return
 
